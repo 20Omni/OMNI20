@@ -20,7 +20,7 @@ user_scaler = joblib.load("user_assignment_scaler (1).pkl")
 user_feature_names = joblib.load("user_assignment_feature_names (1).pkl")
 
 # === Load dataset (for dropdown) ===
-df = pd.read_csv("final_task_dataset_balanced.csv")
+df = pd.read_csv("nlp_cleaned_task_dataset.csv")
 
 # === Helper function: Days left ===
 def calculate_days_left(deadline_str):
