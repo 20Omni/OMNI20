@@ -79,7 +79,7 @@ if st.button("Predict & Assign Task"):
     if task_description.strip() == "":
         st.warning("Please enter or select a task.")
     else:
-        category_name, priority_name, assigned_user, days_left = predict_all(task_description, deadline)
+        category_name, priority_name, assigned_user, days_left = predict_all(task_description_clean, deadline)
         st.subheader("Prediction Results")
         st.write(f"**Category:** {category_name}")
         st.write(f"**Predicted Priority:** {priority_name}")
