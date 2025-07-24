@@ -17,7 +17,7 @@ priority_label_encoder = joblib.load("priority_label_encoder.pkl")
 
 # Load user assignment model
 user_model = joblib.load("user_assignment_xgb (1).pkl")
-user_tfidf = joblib.load("user_assignment_tfidf (1).pkl")
+user_vectorizer = joblib.load("user_assignment_tfidf (1).pkl")
 user_scaler = joblib.load("user_assignment_scaler (1).pkl")
 user_label_encoder = joblib.load("user_assignment_label_encoder (1).pkl")
 user_feature_names = joblib.load("user_assignment_feature_names (1).pkl")
