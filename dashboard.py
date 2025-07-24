@@ -9,9 +9,9 @@ task_model = joblib.load("voting_ensemble_task_classifier.joblib")
 task_vectorizer = joblib.load("task_tfidf_vectorizer.joblib")
 task_label_encoder = joblib.load("task_label_encoder.joblib")
 
-priority_model = joblib.load("priority_xgboost (1).pkl")
-priority_vectorizer = joblib.load("priority_tfidf_vectorizer (1).pkl")
-priority_label_encoder = joblib.load("priority_label_encoder (1).pkl")
+priority_model = joblib.load("priority_xgboost.pkl")
+priority_vectorizer = joblib.load("priority_tfidf_vectorize.pkl")
+priority_label_encoder = joblib.load("priority_label_encoder.pkl")
 
 user_model = joblib.load("user_assignment_xgb.pkl")
 user_vectorizer = joblib.load("user_assignment_tfidf.pkl")
