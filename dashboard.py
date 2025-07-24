@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from datetime import datetime
+from scipy.sparse import hstack
 
 # === Load models & preprocessing ===
 category_model = joblib.load("voting_ensemble_task_classifier.joblib")
@@ -19,7 +20,7 @@ user_scaler = joblib.load("user_assignment_scaler (1).pkl")
 user_label_encoder = joblib.load("user_assignment_label_encoder (1).pkl")
 user_feature_names = joblib.load("user_assignment_feature_names (1).pkl")
 
-df = pd.read_csv("nlp_cleaned_task_dataset.csv")
+df = pd.read_csv("final_task_dataset_balanced.csv")
 
 # === Prediction function ===
 def predict_all(task_description, deadline):
@@ -38,8 +39,9 @@ def predict_all(task_description, deadline):
     deadline_date = datetime.strptime(deadline, "%Y-%m-%d").date()
     days_left = max((deadline_date - today).days, 0)
 
-    priority_encoded = df[df['Priority'] == priority_name]['priority_encoded'].mode()[0]
-    category_encoded = df[df['category'] == category_name]['category_encoded'].mode()[0]
+    # Use encoders directly (no dataset lookup)
+    priority_encoded = priority_pred
+    category_encoded = category_pred
 
     numeric_features = pd.DataFrame([{
         'category_encoded': category_encoded,
@@ -56,7 +58,6 @@ def predict_all(task_description, deadline):
     # Text for user assignment
     user_text_vec = user_tfidf.transform([task_description])
 
-    from scipy.sparse import hstack
     user_input = hstack([user_text_vec, numeric_scaled])
 
     user_pred = user_model.predict(user_input)[0]
@@ -78,6 +79,7 @@ if st.button("Assign Task"):
     st.write(f"**Priority:** {priority_name}")
     st.write(f"**Assigned User:** {assigned_user}")
     st.write(f"**Days Left for Deadline:** {days_left}")
+
 
 
 
