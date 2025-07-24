@@ -3,89 +3,99 @@ import pandas as pd
 import joblib
 import numpy as np
 from datetime import datetime
+from scipy.sparse import hstack
 
-# === Load models and data ===
-df = pd.read_csv("nlp_cleaned_task_dataset.csv")
-
-# Task classification
+# === Load Models ===
 task_model = joblib.load("voting_ensemble_task_classifier.joblib")
 task_vectorizer = joblib.load("task_tfidf_vectorizer.joblib")
 task_label_encoder = joblib.load("task_label_encoder.joblib")
 
-# Priority prediction
 priority_model = joblib.load("priority_xgboost.pkl")
 priority_vectorizer = joblib.load("priority_tfidf_vectorizer.pkl")
 priority_label_encoder = joblib.load("priority_label_encoder.pkl")
 
-# User assignment
 user_model = joblib.load("user_assignment_xgb.pkl")
 user_vectorizer = joblib.load("user_assignment_tfidf.pkl")
 user_label_encoder = joblib.load("user_assignment_label_encoder.pkl")
 user_scaler = joblib.load("user_assignment_scaler.pkl")
-feature_names = joblib.load("user_assignment_feature_names.pkl")
+user_feature_names = joblib.load("user_assignment_feature_names.pkl")
 
-st.title("AI Task Management Dashboard")
-st.write("Auto‑classify tasks, predict priority, and assign to the best user.")
+# === Load Dataset ===
+df = pd.read_csv("nlp_cleaned_task_dataset.csv")
 
-# === Task selection or manual entry ===
-mode = st.radio("Choose input mode", ["Select from dataset", "Write manually"])
-if mode == "Select from dataset":
-    task_description = st.selectbox("Select a Task from Dataset", df['task_description_clean'].unique())
-    deadline = st.date_input("Deadline", datetime.now().date())
-else:
-    task_description = st.text_area("Enter Task Description")
-    deadline = st.date_input("Deadline", datetime.now().date())
+# === Utility: Calculate days left ===
+def calculate_days_left(deadline):
+    today = datetime.today().date()
+    return (deadline - today).days
 
-# === Predict category, priority, and user ===
+# === Predict Function ===
 def predict_all(task_description, deadline):
-    # Category prediction
-    task_vec = task_vectorizer.transform([task_description])
-    category_pred = task_model.predict(task_vec)[0]
+    # ---- CATEGORY ----
+    task_tfidf = task_vectorizer.transform([task_description])
+    category_pred = task_model.predict(task_tfidf)[0]
     category_name = task_label_encoder.inverse_transform([category_pred])[0]
 
-    # Priority prediction
-    priority_vec = priority_vectorizer.transform([task_description])
-    priority_pred = priority_model.predict(priority_vec)[0]
+    # ---- PRIORITY ----
+    priority_tfidf = priority_vectorizer.transform([task_description])
+    priority_pred = priority_model.predict(priority_tfidf)[0]
     priority_name = priority_label_encoder.inverse_transform([priority_pred])[0]
 
-    # Deadline days
-    days_left = (deadline - datetime.now().date()).days
-
-    # Numeric features for user model
+    # ---- USER ASSIGNMENT ----
+    deadline_days = calculate_days_left(deadline)
+    has_keyword_urgent = int(any(word in task_description.lower() for word in ["urgent", "immediate", "asap"]))
     task_length = len(task_description.split())
-    has_urgent = int("urgent" in task_description.lower() or "immediate" in task_description.lower())
     is_weekend_deadline = int(deadline.weekday() >= 5)
 
-    numeric_features = pd.DataFrame([{
-        'category_encoded': category_pred,
-        'priority_encoded': priority_pred,
-        'deadline_days': days_left,
-        'has_keyword_urgent': has_urgent,
-        'task_length': task_length,
-        'user_current_load': 0,      # Dummy, model adjusts internally
-        'user_workload': 0.5,        # Placeholder
-        'past_behavior_score': 0.5,  # Placeholder
-        'is_weekend_deadline': is_weekend_deadline
-    }])
+    # Get all users
+    all_users = user_label_encoder.classes_
+    user_scores = {}
 
-    # Scale & transform
-    numeric_scaled = user_scaler.transform(numeric_features[feature_names])
-    task_tfidf = user_vectorizer.transform([task_description])
-    from scipy.sparse import hstack
-    user_input = hstack([task_tfidf, numeric_scaled])
+    for user in all_users:
+        # Get user stats from dataset
+        user_data = df[df['assigned_user'] == user]
+        user_current_load = len(user_data)
+        user_workload = user_data['user_workload'].mean() if not user_data.empty else df['user_workload'].mean()
+        past_behavior_score = user_data['past_behavior_score'].mean() if not user_data.empty else df['past_behavior_score'].mean()
 
-    # User prediction
-    user_pred = user_model.predict(user_input)[0]
-    assigned_user = user_label_encoder.inverse_transform([user_pred])[0]
+        # Numeric features
+        numeric_features = pd.DataFrame([[
+            category_pred, priority_pred, deadline_days,
+            has_keyword_urgent, task_length, user_current_load,
+            user_workload, past_behavior_score, is_weekend_deadline
+        ]], columns=user_feature_names)
 
-    return category_name, priority_name, assigned_user, days_left
+        numeric_scaled = user_scaler.transform(numeric_features)
+        text_tfidf = user_vectorizer.transform([task_description])
+        user_input = hstack([text_tfidf, numeric_scaled])
 
-if st.button("Predict Task Assignment"):
+        # Predict probability
+        prob = user_model.predict_proba(user_input)[0]
+        user_index = np.where(all_users == user)[0][0]
+        user_scores[user] = prob[user_index]
+
+    # Assign to user with highest probability
+    assigned_user = max(user_scores, key=user_scores.get)
+    return category_name, priority_name, assigned_user, deadline_days
+
+# === Streamlit UI ===
+st.title("AI Task Assignment Dashboard")
+
+option = st.radio("Choose Input Method", ["Manual Entry", "Select from Dataset"])
+
+if option == "Manual Entry":
+    task_description = st.text_area("Task Description")
+    deadline = st.date_input("Deadline")
+else:
+    task_description = st.selectbox("Select a Task", df['task_description_clean'].unique())
+    deadline = st.date_input("Deadline", datetime.today())
+
+if st.button("Assign Task"):
     if task_description.strip():
         category_name, priority_name, assigned_user, days_left = predict_all(task_description, deadline)
-        st.success(f"**Predicted Category:** {category_name}")
-        st.success(f"**Predicted Priority:** {priority_name}")
+        st.success(f"**Category:** {category_name}")
+        st.success(f"**Priority:** {priority_name}")
         st.success(f"**Assigned User:** {assigned_user}")
-        st.info(f"**Days Left for Deadline:** {days_left}")
+        st.info(f"**Days left for deadline:** {days_left}")
     else:
-        st.error("Please enter or select a task description.")
+        st.warning("Please enter or select a task description.")
+
