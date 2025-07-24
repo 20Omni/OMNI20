@@ -20,7 +20,7 @@ scaler = joblib.load("user_assignment_scaler.pkl")
 feature_names = joblib.load("user_assignment_feature_names.pkl")  # NEW: enforce feature order
 
 # === Load dataset (for dropdown & feature mapping) ===
-df = pd.read_csv("final_task_dataset_balanced.csv")
+df = pd.read_csv("nlp_cleaned_task_dataset.csv")
 
 # === Prediction Function ===
 def predict_all(task_desc, deadline, priority_encoded, user_load, past_behavior, workload):
