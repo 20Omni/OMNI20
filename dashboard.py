@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
-from datetime import datetime
+from datetime import datetime, date
 from scipy.sparse import hstack
 
 # === Load all models and encoders ===
@@ -87,7 +87,8 @@ st.title("AI-Powered Task Management System")
 # --- Task input ---
 task_description = st.selectbox("Select a Task from Dataset", df['task_description_clean'].unique())
 
-deadline = st.date_input("Deadline (YYYY-MM-DD)")
+# Deadline should start from today
+deadline = st.date_input("Deadline (YYYY-MM-DD)", min_value=date.today())
 deadline_str = deadline.strftime("%Y-%m-%d")
 
 # --- Predict button ---
@@ -99,5 +100,3 @@ if st.button("Assign Task"):
     st.write(f"**Task Priority:** {priority_name}")
     st.write(f"**Assigned User:** {assigned_user}")
     st.write(f"**Days Left until Deadline:** {days_left}")
-
-
