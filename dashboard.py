@@ -9,7 +9,7 @@ category_model = joblib.load("voting_ensemble_task_classifier.joblib")
 category_vectorizer = joblib.load("task_tfidf_vectorizer.joblib")
 category_label_encoder = joblib.load("task_label_encoder.joblib")
 
-priority_model = joblib.load("priority_xgboos.pkl")
+priority_model = joblib.load("priority_xgboost.pkl")
 priority_vectorizer = joblib.load("priority_tfidf_vectorizer.pkl")
 priority_label_encoder = joblib.load("priority_label_encoder.pkl")
 
