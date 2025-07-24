@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from datetime import datetime
+from scipy.sparse import hstack
 
 # ==== Load dataset (for dropdown and feature lookup) ====
 df = pd.read_csv("nlp_cleaned_task_dataset.csv")
@@ -17,11 +18,11 @@ priority_model = joblib.load("priority_xgboost.pkl")
 priority_vectorizer = joblib.load("priority_tfidf_vectorizer.pkl")
 priority_label_encoder = joblib.load("priority_label_encoder.pkl")
 
-user_model = joblib.load("user_assignment_xgb(1).pkl")
-user_vectorizer = joblib.load("user_assignment_tfidf(1).pkl")
-user_label_encoder = joblib.load("user_assignment_label_encoder(1).pkl")
-user_scaler = joblib.load("user_assignment_scaler(1).pkl")
-user_feature_names = joblib.load("user_assignment_feature_names(1).pkl")
+user_model = joblib.load("user_assignment_xgb (1).pkl")
+user_vectorizer = joblib.load("user_assignment_tfidf (1).pkl")
+user_label_encoder = joblib.load("user_assignment_label_encoder (1).pkl")
+user_scaler = joblib.load("user_assignment_scaler (1).pkl")
+user_feature_names = joblib.load("user_assignment_feature_names (1).pkl")
 
 # ==== Helper: Days left ====
 def calculate_days_left(deadline):
@@ -41,7 +42,6 @@ def predict_all(task_description, deadline):
     priority_name = priority_label_encoder.inverse_transform([priority_pred])[0]
 
     # --- User Assignment ---
-    # Lookup average numeric features for similar category/priority tasks
     sample_row = df.sample(1).iloc[0]
     numeric_features = pd.DataFrame([{
         'category_encoded': category_pred,
@@ -56,7 +56,6 @@ def predict_all(task_description, deadline):
     }])
     numeric_scaled = user_scaler.transform(numeric_features[user_feature_names])
     X_text_user = user_vectorizer.transform([task_description])
-    from scipy.sparse import hstack
     X_user_final = hstack([X_text_user, numeric_scaled])
     user_pred = user_model.predict(X_user_final)[0]
     assigned_user = user_label_encoder.inverse_transform([user_pred])[0]
@@ -90,5 +89,3 @@ if st.button("Assign Task"):
         st.write(f"**Predicted Priority:** {priority_name}")
         st.write(f"**Assigned User:** {assigned_user}")
         st.write(f"**Deadline:** {deadline_str} ({days_left} days left)")
-
-
