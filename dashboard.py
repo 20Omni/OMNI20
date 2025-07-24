@@ -10,7 +10,7 @@ task_vectorizer = joblib.load("task_tfidf_vectorizer.joblib")
 task_label_encoder = joblib.load("task_label_encoder.joblib")
 
 priority_model = joblib.load("priority_xgboost.pkl")
-priority_vectorizer = joblib.load("priority_tfidf_vectorize.pkl")
+priority_vectorizer = joblib.load("priority_tfidf_vectorizer.pkl")
 priority_label_encoder = joblib.load("priority_label_encoder.pkl")
 
 user_model = joblib.load("user_assignment_xgb.pkl")
