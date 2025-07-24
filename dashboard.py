@@ -82,7 +82,7 @@ def predict_all(task_description, deadline):
 
 # === Streamlit UI ===
 st.set_page_config(page_title="AI Task Management System", layout="wide")
-st.title("AI-Powered Task Management System")
+st.title(" 📌 AI-Powered Task Management System")
 
 # --- Task input ---
 task_description = st.selectbox("Select a Task from Dataset", df['task_description_clean'].unique())
