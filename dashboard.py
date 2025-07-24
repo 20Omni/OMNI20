@@ -78,7 +78,7 @@ deadline = st.date_input("Select Deadline", datetime.now()).strftime("%Y-%m-%d")
 
 # Prediction
 if st.button("Assign Task"):
-    category_name, priority_name, assigned_user, days_left = predict_all(task_description_clean, deadline)
+    category_name, priority_name, assigned_user, days_left = predict_all(numeric_features, deadline)
 
     st.subheader("Prediction Results")
     st.write(f"**Category:** {category_name}")
