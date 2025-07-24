@@ -71,7 +71,7 @@ input_mode = st.radio("Select Input Mode", ["Manual Entry", "Choose from Dataset
 if input_mode == "Manual Entry":
     task_description = st.text_area("Enter Task Description")
 else:
-    task_description = st.selectbox("Select a Task from Dataset", df['Task Description'].unique())
+    task_description = st.selectbox("Select a Task from Dataset", df['task_description_clean'].unique())
 
 deadline = st.date_input("Set Deadline")
 
