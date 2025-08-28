@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
-from datetime import datetime, dat
+from datetime import datetime, date
 from scipy.sparse import hstack
 
 # === Load all models and encoders ===
